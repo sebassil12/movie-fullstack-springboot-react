@@ -1,15 +1,32 @@
-import { useEffect } from "react";
+import { useRef } from "react";
+import { useEffect, useState } from "react";
 import { Col, Container, Row } from "react-bootstrap";
 import { useParams } from "react-router-dom";
 import ReviewForm from "../ReviewForm/ReviewForm";
 import api from '../api/axios.config';
-function Reviews({getMovieData, movie, reviews, setReviews}) {
+
+function Reviews() {
     const revText = useRef();
     let params = useParams();
     const movieId = params.movieId;
+    const [reviews, setReviews] = useState();
+    const [movie, setMovie] = useState(); 
+    
+
+    const getMovieData = async(movieId) =>{
+        try{
+          const response = await api.get(`api/v1/movies/${movieId}`)
+          const singleMovie = response.data;
+          console.log(singleMovie)
+          setMovie(singleMovie);
+          setReviews(singleMovie.reviewIds);
+        }catch(e){
+    
+        }
+    }
 
     useEffect(()=>{
-        getMovieData(movieId);
+        getMovieData(movieId);  
     },[])
 
     const addReview = async(e)=>{
@@ -18,14 +35,14 @@ function Reviews({getMovieData, movie, reviews, setReviews}) {
 
             const rev = revText.current;
     
-            const respones = await api.post("/api/v1/reviews", {reviewBody:rev.value, imdbId:movieId});
+            await api.post("/api/v1/reviews", {reviewBody:rev.value, imdbId:movieId});
     
             const updateReviews = [...reviews,{body:rev.value}];
     
             rev.value = "";
             setReviews(updateReviews)
-        }catch(e)
-        {console.error(e)}
+        }catch(error)
+        {console.error(error)}
 
     }
     return ( 
@@ -55,7 +72,7 @@ function Reviews({getMovieData, movie, reviews, setReviews}) {
                     </>
                 }
                 {
-                    reviews.map((r)=>{
+                    reviews?.map((r)=>{
                         return(
                             <>
                                 <Row>
